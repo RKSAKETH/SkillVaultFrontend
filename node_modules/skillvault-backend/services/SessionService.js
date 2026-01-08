@@ -345,8 +345,12 @@ class SessionService {
                 const session = await Session.findOneAndUpdate(
                     {
                         _id: sessionId,
-                        status: { $in: [SESSION_STATUS.PENDING, SESSION_STATUS.CONFIRMED] },
-                        lockedUntil: { $lt: new Date() }
+                        status: { $in: [SESSION_STATUS.PENDING, SESSION_STATUS.CONFIRMED, SESSION_STATUS.IN_PROGRESS] },
+                        $or: [
+                            { lockedUntil: null },
+                            { lockedUntil: { $lt: new Date() } },
+                            { lockedUntil: { $exists: false } }
+                        ]
                     },
                     {
                         $set: { lockedUntil: new Date(Date.now() + 30000) }

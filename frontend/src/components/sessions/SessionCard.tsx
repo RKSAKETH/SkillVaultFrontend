@@ -41,7 +41,7 @@ export function SessionCard({
     const isPast = scheduledAt < now;
     const canConfirm = isTutor && session.status === 'pending';
     const canComplete = (session.status === 'confirmed' || session.status === 'in_progress') && isPast;
-    const canCancel = session.status === 'pending' || session.status === 'confirmed';
+    const canCancel = session.status === 'pending' || session.status === 'confirmed' || session.status === 'in_progress';
 
     // Check if this is a video session that's confirmed/in_progress
     const isVideoSession = (session.status === 'confirmed' || session.status === 'in_progress') &&
