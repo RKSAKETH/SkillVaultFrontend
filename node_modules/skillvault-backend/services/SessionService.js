@@ -61,12 +61,14 @@ class SessionService {
                 // Check for overlapping sessions for both parties
                 const studentOverlaps = await Session.findOverlapping(studentId, scheduledDate, duration);
                 if (studentOverlaps.length > 0) {
-                    throw new Error('You have a conflicting session at this time');
+                    const conflict = studentOverlaps[0];
+                    throw new Error(`You have a conflicting session at this time: ${conflict.scheduledAt} (${conflict.duration} min)`);
                 }
 
                 const tutorOverlaps = await Session.findOverlapping(tutorId, scheduledDate, duration);
                 if (tutorOverlaps.length > 0) {
-                    throw new Error('Tutor has a conflicting session at this time');
+                    const conflict = tutorOverlaps[0];
+                    throw new Error(`Tutor has a conflicting session at this time: ${conflict.scheduledAt} (${conflict.duration} min)`);
                 }
 
                 // Create the session
