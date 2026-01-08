@@ -4,10 +4,17 @@
 
 SkillVault is a full-stack web application that enables users to teach and learn skills from each other using a credit-based time banking system. Users can offer their expertise, book learning sessions, and engage in real-time video calls, all while managing their credit balance in a secure and seamless environment.
 
+## 🎬 Demo Video
+
+[![Watch the Demo](https://img.shields.io/badge/▶️-Watch%20Demo-blue?style=for-the-badge&logo=vimeo)](https://vimeo.com/1152635855)
+
+**[Click here to watch the full demo video](https://vimeo.com/1152635855)** showcasing all features of SkillVault including user registration, session booking, real-time video calls with transcription, and credit management.
+
 ---
 
 ## 📋 Table of Contents
 
+- [Demo Video](#-demo-video)
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [Architecture](#-architecture)
