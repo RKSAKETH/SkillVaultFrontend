@@ -86,10 +86,37 @@ export function BookSessionModal({ isOpen, onClose, tutor, onSuccess }: BookSess
 
     if (!tutor) return null;
 
-    // Get minimum date (tomorrow)
-    const minDate = new Date();
-    minDate.setDate(minDate.getDate() + 1);
-    const minDateStr = minDate.toISOString().split('T')[0];
+    // Get minimum date (today)
+    const today = new Date();
+    const minDateStr = today.toISOString().split('T')[0];
+
+    // Check if selected date is today
+    const isToday = date === minDateStr;
+
+    // Get minimum time for today (current time + 5 minutes buffer)
+    const getMinTimeForToday = () => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 5); // Just 5 minutes from now
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    };
+
+    const minTimeStr = isToday ? getMinTimeForToday() : '00:00';
+
+    // Validate that the selected datetime is in the future
+    const isValidDateTime = () => {
+        if (!date || !time) return true; // Don't show error if not selected yet
+        const selectedDateTime = new Date(`${date}T${time}`);
+        const now = new Date();
+        // Add just 2 minutes buffer for testing
+        now.setMinutes(now.getMinutes() + 2);
+        return selectedDateTime > now;
+    };
+
+    const dateTimeError = date && time && !isValidDateTime()
+        ? 'Please select a time at least 2 minutes from now'
+        : '';
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose} title="Book a Session" size="lg">
@@ -141,8 +168,8 @@ export function BookSessionModal({ isOpen, onClose, tutor, onSuccess }: BookSess
                                         type="button"
                                         onClick={() => setSelectedSkill(skill)}
                                         className={`p-3 rounded-xl border text-left transition-all ${selectedSkill?._id === skill._id
-                                                ? 'bg-violet-500/20 border-violet-500 text-white'
-                                                : 'bg-gray-800/50 border-gray-700 text-gray-300 hover:border-gray-600'
+                                            ? 'bg-violet-500/20 border-violet-500 text-white'
+                                            : 'bg-gray-800/50 border-gray-700 text-gray-300 hover:border-gray-600'
                                             }`}
                                     >
                                         <p className="font-medium truncate">{skill.name}</p>
@@ -169,9 +196,20 @@ export function BookSessionModal({ isOpen, onClose, tutor, onSuccess }: BookSess
                                 label="Time"
                                 value={time}
                                 onChange={(e) => setTime(e.target.value)}
+                                min={isToday ? minTimeStr : undefined}
                                 required
                             />
                         </div>
+                        {dateTimeError && (
+                            <p className="text-sm text-amber-400 -mt-2">
+                                ⚠️ {dateTimeError}
+                            </p>
+                        )}
+                        {isToday && !dateTimeError && date && (
+                            <p className="text-xs text-gray-500 -mt-2">
+                                📅 Scheduling for today - earliest available time is {minTimeStr}
+                            </p>
+                        )}
 
                         {/* Duration */}
                         <Select
@@ -231,7 +269,7 @@ export function BookSessionModal({ isOpen, onClose, tutor, onSuccess }: BookSess
                             type="submit"
                             className="flex-1"
                             isLoading={isLoading}
-                            disabled={!selectedSkill || !date || !time || !hasEnoughCredits}
+                            disabled={!selectedSkill || !date || !time || !hasEnoughCredits || !!dateTimeError}
                         >
                             Book Session
                         </Button>

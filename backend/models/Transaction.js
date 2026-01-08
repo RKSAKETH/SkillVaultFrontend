@@ -95,8 +95,7 @@ const transactionSchema = new mongoose.Schema({
 
     // Idempotency key for preventing duplicate operations
     idempotencyKey: {
-        type: String,
-        sparse: true
+        type: String
     }
 }, {
     timestamps: true

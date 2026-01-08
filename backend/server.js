@@ -1,14 +1,18 @@
 require('dotenv').config();
 
 const express = require('express');
+const http = require('http');
+const path = require('path');
+const { Server } = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
 const connectDB = require('./config/database');
-const { authRoutes, userRoutes, sessionRoutes, walletRoutes } = require('./routes');
+const { authRoutes, userRoutes, sessionRoutes, walletRoutes, transcriptionRoutes } = require('./routes');
 const { errorHandler, notFound } = require('./middleware');
+const { initializeSocketHandlers } = require('./socketHandlers');
 
 // Initialize express app
 const app = express();
@@ -63,6 +67,9 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
+// Serve static files for testing
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({
@@ -77,6 +84,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/wallet', walletRoutes);
+app.use('/api/transcription', transcriptionRoutes);
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
@@ -126,10 +134,29 @@ app.use(notFound);
 // Error handler
 app.use(errorHandler);
 
-// Start server
+// Start server with Socket.IO
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
+// Create HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.IO with CORS
+const io = new Server(server, {
+    cors: {
+        origin: process.env.NODE_ENV === 'production'
+            ? process.env.FRONTEND_URL
+            : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+        methods: ['GET', 'POST'],
+        credentials: true
+    },
+    pingTimeout: 60000,
+    pingInterval: 25000
+});
+
+// Initialize socket handlers for WebRTC signaling
+initializeSocketHandlers(io);
+
+server.listen(PORT, () => {
     console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
@@ -138,6 +165,7 @@ const server = app.listen(PORT, () => {
 ║   Environment: ${process.env.NODE_ENV || 'development'}                            ║
 ║   Port: ${PORT}                                            ║
 ║   API: http://localhost:${PORT}/api                         ║
+║   WebSocket: ws://localhost:${PORT}                         ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
   `);
@@ -158,4 +186,4 @@ process.on('uncaughtException', (err) => {
     process.exit(1);
 });
 
-module.exports = app;
+module.exports = { app, server, io };
