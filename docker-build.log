@@ -1,0 +1,343 @@
+﻿docker : #0 building 
+with "desktop-linux" 
+instance using 
+docker driver
+At line:1 char:1
++ docker build 
+--no-cache -t 
+frontend-test 
+./frontend 2>&1 | 
+Out-File - ...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (#0 buil   
+ ding wit...g doc    
+ker driver:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+
+#1 [internal] load 
+build definition 
+from Dockerfile
+#1 transferring 
+dockerfile: 952B done
+#1 DONE 0.0s
+
+#2 [internal] load 
+metadata for docker.i
+o/library/node:20-alp
+ine
+#2 DONE 1.1s
+
+#3 [internal] load 
+.dockerignore
+#3 transferring 
+context: 139B done
+#3 DONE 0.0s
+
+#4 [deps 1/4] FROM do
+cker.io/library/node:
+20-alpine@sha256:658d
+0f63e501824d6c23e06d4
+bb95c71e7d704537c9d92
+72f488ac03a370d448
+#4 resolve docker.io/
+library/node:20-alpin
+e@sha256:658d0f63e501
+824d6c23e06d4bb95c71e
+7d704537c9d9272f488ac
+03a370d448 0.0s done
+#4 DONE 0.0s
+
+#5 [deps 2/4] 
+WORKDIR /app
+#5 CACHED
+
+#6 [internal] load 
+build context
+#6 transferring 
+context: 3.35kB done
+#6 DONE 0.0s
+
+#7 [deps 3/4] COPY 
+package.json 
+package-lock.json* ./
+#7 DONE 0.1s
+
+#8 [runner 3/7] RUN 
+addgroup --system 
+--gid 1001 nodejs
+#8 DONE 0.2s
+
+#9 [deps 4/4] RUN 
+npm install
+#9 ...
+
+#10 [runner 4/7] RUN 
+adduser --system 
+--uid 1001 nextjs
+#10 DONE 0.3s
+
+#9 [deps 4/4] RUN 
+npm install
+#9 29.59 
+#9 29.59 added 342 
+packages, and 
+audited 343 packages 
+in 29s
+#9 29.59 
+#9 29.59 141 
+packages are looking 
+for funding
+#9 29.59   run `npm 
+fund` for details
+#9 29.59 
+#9 29.59 found 0 
+vulnerabilities
+#9 29.60 npm notice
+#9 29.60 npm notice 
+New major version of 
+npm available! 
+10.8.2 -> 11.7.0
+#9 29.60 npm notice 
+Changelog: https://gi
+thub.com/npm/cli/rele
+ases/tag/v11.7.0
+#9 29.60 npm notice 
+To update run: npm 
+install -g npm@11.7.0
+#9 29.60 npm notice
+#9 DONE 30.1s
+
+#11 [builder 3/5] 
+COPY --from=deps 
+/app/node_modules 
+./node_modules
+#11 DONE 2.4s
+
+#12 [builder 4/5] 
+COPY . .
+#12 DONE 0.2s
+
+#13 [builder 5/5] 
+RUN npm run build
+#13 0.487 
+#13 0.487 > 
+frontend@0.1.0 build
+#13 0.487 > next 
+build
+#13 0.487 
+#13 1.225 Attention: 
+Next.js now collects 
+completely anonymous 
+telemetry regarding 
+usage.
+#13 1.226 This 
+information is used 
+to shape Next.js' 
+roadmap and 
+prioritize features.
+#13 1.226 You can 
+learn more, 
+including how to 
+opt-out if you'd not 
+like to participate 
+in this anonymous 
+program, by visiting 
+the following URL:
+#13 1.226 https://nex
+tjs.org/telemetry
+#13 1.226 
+#13 1.320    Γû▓ 
+Next.js 15.5.9
+#13 1.320 
+#13 1.412    
+Creating an 
+optimized production 
+build ...
+#13 12.22  Γ£ô 
+Compiled 
+successfully in 7.9s
+#13 12.23    
+Skipping validation 
+of types
+#13 12.23    
+Skipping linting
+#13 12.47    
+Collecting page data 
+...
+#13 14.23    
+Generating static 
+pages (0/12) ...
+#13 15.05    
+Generating static 
+pages (3/12) 
+#13 15.05    
+Generating static 
+pages (6/12) 
+#13 15.05    
+Generating static 
+pages (9/12) 
+#13 15.06  Γ£ô 
+Generating static 
+pages (12/12)
+#13 15.67    
+Finalizing page 
+optimization ...
+#13 15.67    
+Collecting build 
+traces ...
+#13 28.14 
+#13 28.15 Route 
+(app)                
+                 
+Size  First Load JS
+#13 28.15 Γöî Γùï /  
+                     
+             3.38 kB 
+        121 kB
+#13 28.15 Γö£ Γùï 
+/_not-found          
+                  
+991 B         103 kB
+#13 28.15 Γö£ Γùï 
+/dashboard           
+                3.53 
+kB         122 kB
+#13 28.15 Γö£ Γùï 
+/login               
+                1.52 
+kB         120 kB
+#13 28.15 Γö£ Γùï 
+/marketplace         
+                5.63 
+kB         120 kB
+#13 28.15 Γö£ Γùï 
+/profile             
+                3.53 
+kB         118 kB
+#13 28.15 Γö£ Γùï 
+/register            
+                2.02 
+kB         120 kB
+#13 28.15 Γö£ Γùï 
+/sessions            
+                3.55 
+kB         122 kB
+#13 28.15 Γö£ ╞Æ 
+/sessions/call       
+                8.13 
+kB         123 kB
+#13 28.15 Γöö Γùï 
+/wallet              
+                2.47 
+kB         117 kB
+#13 28.15 + First 
+Load JS shared by 
+all             102 
+kB
+#13 28.15   Γö£ chunk
+s/255-cb395327542b56e
+f.js       45.9 kB
+#13 28.15   Γö£ chunk
+s/4bd1b696-c023c6e352
+1b1417.js  54.2 kB
+#13 28.15   Γöö 
+other shared chunks 
+(total)          
+1.92 kB
+#13 28.15 
+#13 28.15 
+#13 28.15 Γùï  
+(Static)   
+prerendered as 
+static content
+#13 28.15 ╞Æ  
+(Dynamic)  
+server-rendered on 
+demand
+#13 28.15 
+#13 28.17 npm notice
+#13 28.17 npm notice 
+New major version of 
+npm available! 
+10.8.2 -> 11.7.0
+#13 28.17 npm notice 
+Changelog: https://gi
+thub.com/npm/cli/rele
+ases/tag/v11.7.0
+#13 28.17 npm notice 
+To update run: npm 
+install -g npm@11.7.0
+#13 28.17 npm notice
+#13 DONE 28.3s
+
+#14 [runner 5/7] 
+COPY --from=builder 
+/app/public ./public
+#14 DONE 0.1s
+
+#15 [runner 6/7] 
+COPY --from=builder /
+app/.next/standalone 
+./
+#15 DONE 0.4s
+
+#16 [runner 7/7] 
+COPY --from=builder 
+/app/.next/static 
+./.next/static
+#16 DONE 0.1s
+
+#17 exporting to 
+image
+#17 exporting layers
+#17 exporting layers 
+1.8s done
+#17 exporting 
+manifest sha256:a8125
+ec052dd6ef63ab19bb918
+f194331432d92a51eb386
+662125ee9adc708c1 
+0.1s done
+#17 exporting config 
+sha256:2a638f6a6a0e3e
+6719e49bac1d56a9bfed3
+bc85b9fdf467facf6c0f6
+9deb9929 0.1s done
+#17 exporting 
+attestation manifest 
+sha256:40c1e14d7fc6a2
+068f6b3505e9297b7b981
+47b6cda9d78285fc12350
+7df60f52 0.1s done
+#17 exporting 
+manifest list sha256:
+abd04e9094546a21f16e2
+9bd4663321c6e1bb0cb55
+456d56b516f03b346187c
+1
+#17 exporting 
+manifest list sha256:
+abd04e9094546a21f16e2
+9bd4663321c6e1bb0cb55
+456d56b516f03b346187c
+1 0.1s done
+#17 naming to docker.
+io/library/frontend-t
+est:latest 0.0s done
+#17 unpacking to dock
+er.io/library/fronten
+d-test:latest
+#17 unpacking to dock
+er.io/library/fronten
+d-test:latest 0.6s 
+done
+#17 DONE 2.9s
