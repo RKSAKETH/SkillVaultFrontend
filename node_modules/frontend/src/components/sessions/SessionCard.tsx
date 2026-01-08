@@ -1,10 +1,9 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, Avatar, Badge, Button } from '@/components/ui';
-import { Calendar, Clock, Video, MapPin, MessageSquare, ArrowRight, Phone } from 'lucide-react';
+import { Calendar, Clock, Video, MapPin, MessageSquare, Phone } from 'lucide-react';
 import { formatDate, formatTime, formatDuration, formatCredits } from '@/lib/utils';
 import { Session, SessionStatus } from '@/types';
 
@@ -174,11 +173,6 @@ export function SessionCard({
                             Cancel
                         </Button>
                     )}
-                    <Link href={`/sessions/${session._id}`} className="ml-auto">
-                        <Button size="sm" variant="ghost">
-                            Details <ArrowRight className="w-4 h-4 ml-1" />
-                        </Button>
-                    </Link>
                 </div>
             )}
         </Card>
