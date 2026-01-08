@@ -7,9 +7,9 @@ import { Navbar } from "@/components/layout";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SkillVault - Trade Knowledge, Not Money",
-  description: "A peer-to-peer time banking platform where students trade skills. Teach what you know, learn what you need.",
-  keywords: ["tutoring", "skill exchange", "time banking", "peer learning", "education"],
+  title: "SkillVault - Peer-to-Peer Time Banking | Trade Knowledge, Not Money",
+  description: "A Build2Break hackathon project: Time banking system where 1 hour teaching = 1 Time Credit. Trade skills, not money. Built with financial-grade security and AI fraud detection.",
+  keywords: ["time banking", "skill exchange", "peer learning", "build2break", "hackathon", "tutoring", "education", "credits"],
 };
 
 export default function RootLayout({

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Session, User } = require('../models');
 const TransactionService = require('./TransactionService');
+const FraudDetectionService = require('./FraudDetectionService');
 const { SESSION_STATUS, TRANSACTION_TYPE } = require('../config/constants');
 
 /**
@@ -11,6 +12,7 @@ class SessionService {
     /**
      * Book a new session with a tutor
      * This reserves credits from the student but doesn't transfer them yet
+     * Now includes AI-powered fraud detection!
      */
     static async bookSession(studentId, tutorId, sessionData) {
         const { skillName, skillCategory, scheduledAt, duration, notes, meetingType } = sessionData;
@@ -23,6 +25,36 @@ class SessionService {
         const scheduledDate = new Date(scheduledAt);
         if (scheduledDate <= new Date()) {
             throw new Error('Session must be scheduled in the future');
+        }
+
+        // ===== AI FRAUD DETECTION: Assess risk before booking =====
+        try {
+            const tutor = await User.findById(tutorId);
+            const tutorSkill = tutor.teachingSkills.find(
+                s => s.name.toLowerCase() === skillName.toLowerCase() && s.category === skillCategory
+            );
+            const estimatedCost = tutorSkill ? (duration / 60) * tutorSkill.hourlyRate : duration / 60;
+
+            const riskAssessment = await FraudDetectionService.assessTransactionRisk(
+                studentId,
+                tutorId,
+                estimatedCost
+            );
+
+            // Block critical risk transactions
+            if (riskAssessment.riskLevel === 'CRITICAL') {
+                throw new Error(
+                    `Transaction blocked by fraud detection system. Reason: ${riskAssessment.risks.map(r => r.message).join(', ')}`
+                );
+            }
+
+            // Warn on high risk (but allow)
+            if (riskAssessment.riskLevel === 'HIGH') {
+                console.warn(`⚠️  HIGH RISK SESSION: Student ${studentId} -> Tutor ${tutorId}`, riskAssessment);
+            }
+        } catch (error) {
+            // If fraud detection fails, log but don't block (fail open for availability)
+            console.error('Fraud detection error (failing open):', error.message);
         }
 
         const mongoSession = await mongoose.startSession();

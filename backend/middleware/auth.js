@@ -92,4 +92,33 @@ const optionalAuth = async (req, res, next) => {
     }
 };
 
-module.exports = { auth, optionalAuth };
+/**
+ * Admin-only middleware
+ * Requires user to be authenticated and have admin role
+ */
+const adminOnly = (req, res, next) => {
+    // Check if user exists (should be set by protect middleware)
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            error: 'Authentication required'
+        });
+    }
+
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({
+            success: false,
+            error: 'Access denied. Admin privileges required.'
+        });
+    }
+
+    next();
+};
+
+module.exports = { 
+    auth, 
+    optionalAuth, 
+    adminOnly,
+    protect: auth // Alias for consistency with routes
+};

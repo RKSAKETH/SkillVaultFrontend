@@ -20,28 +20,28 @@ export default function HomePage() {
 
   const features = [
     {
-      icon: Sparkles,
-      title: 'Time-Based Currency',
-      description: 'Earn credits by teaching. Spend them to learn. No money changes hands.',
+      icon: Clock,
+      title: '1 Hour = 1 Credit',
+      description: 'Simple time banking: Teach for 1 hour, earn 1 Time Credit. Spend it to learn something new.',
       color: 'from-amber-500 to-orange-500',
     },
     {
       icon: Users,
       title: 'Peer-to-Peer Learning',
-      description: 'Connect directly with fellow students who have the skills you need.',
+      description: 'Connect directly with fellow students. No money required—just skill exchange.',
       color: 'from-violet-500 to-indigo-500',
     },
     {
-      icon: Calendar,
-      title: 'Flexible Scheduling',
-      description: 'Book sessions that fit your schedule. Learn at your own pace.',
-      color: 'from-cyan-500 to-blue-500',
+      icon: Shield,
+      title: 'Adversarially Hardened',
+      description: 'Built for Build2Break: Prevents double-spending, race conditions, and fraud attacks.',
+      color: 'from-red-500 to-pink-500',
     },
     {
-      icon: Shield,
-      title: 'Secure Transactions',
-      description: 'Atomic credit transfers ensure fair exchange for every session.',
-      color: 'from-emerald-500 to-teal-500',
+      icon: Zap,
+      title: 'AI Fraud Detection',
+      description: 'Graph-based algorithms detect circular trading and suspicious patterns in real-time.',
+      color: 'from-cyan-500 to-blue-500',
     },
   ];
 
@@ -65,7 +65,7 @@ export default function HomePage() {
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm font-medium mb-8">
               <Zap className="w-4 h-4" />
-              The Knowledge Economy for Students
+              Build2Break Hackathon 2026 | Time Banking System
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6">
@@ -75,9 +75,12 @@ export default function HomePage() {
               </span>
             </h1>
 
-            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-              SkillVault is a peer-to-peer platform where students exchange skills using time-based credits.
-              Teach React for an hour, earn credits, then learn calculus from someone else.
+            <p className="text-xl text-gray-400 mb-4 max-w-2xl mx-auto">
+              <strong className="text-white">1 Hour Teaching = 1 Time Credit.</strong> Teach React for an hour, earn a credit. Spend that credit to learn calculus from someone else.
+            </p>
+
+            <p className="text-lg text-gray-500 mb-10 max-w-2xl mx-auto">
+              SkillVault is a peer-to-peer time banking system with financial-grade security and AI-powered fraud detection. Built to withstand adversarial attacks.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

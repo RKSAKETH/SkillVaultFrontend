@@ -40,6 +40,13 @@ const userSchema = new mongoose.Schema({
         default: ''
     },
 
+    // User role (for admin access)
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
+
     // Credit balance with version for optimistic locking
     creditBalance: {
         type: Number,

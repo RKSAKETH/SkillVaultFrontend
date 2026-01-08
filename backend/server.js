@@ -7,7 +7,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
 const connectDB = require('./config/database');
-const { authRoutes, userRoutes, sessionRoutes, walletRoutes } = require('./routes');
+const { authRoutes, userRoutes, sessionRoutes, walletRoutes, fraudRoutes } = require('./routes');
 const { errorHandler, notFound } = require('./middleware');
 
 // Initialize express app
@@ -77,6 +77,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/wallet', walletRoutes);
+app.use('/api/fraud', fraudRoutes); // AI-powered fraud detection
 
 // API documentation endpoint
 app.get('/api', (req, res) => {
