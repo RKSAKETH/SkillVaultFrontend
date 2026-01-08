@@ -1,4 +1,5 @@
-# 🎓 SkillVault
+# 🎓 CodeFreaks - SkillVault
+
 
 > A Peer-to-Peer Time Banking System for Skill Sharing
 
