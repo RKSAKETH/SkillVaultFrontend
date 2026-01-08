@@ -61,12 +61,14 @@ class SessionService {
                 // Check for overlapping sessions for both parties
                 const studentOverlaps = await Session.findOverlapping(studentId, scheduledDate, duration);
                 if (studentOverlaps.length > 0) {
-                    throw new Error('You have a conflicting session at this time');
+                    const conflict = studentOverlaps[0];
+                    throw new Error(`You have a conflicting session at this time: ${conflict.scheduledAt} (${conflict.duration} min)`);
                 }
 
                 const tutorOverlaps = await Session.findOverlapping(tutorId, scheduledDate, duration);
                 if (tutorOverlaps.length > 0) {
-                    throw new Error('Tutor has a conflicting session at this time');
+                    const conflict = tutorOverlaps[0];
+                    throw new Error(`Tutor has a conflicting session at this time: ${conflict.scheduledAt} (${conflict.duration} min)`);
                 }
 
                 // Create the session
@@ -121,13 +123,37 @@ class SessionService {
             let result;
 
             await mongoSession.withTransaction(async () => {
+                // First, check if session exists and get its current state
+                const existingSession = await Session.findById(sessionId).session(mongoSession);
+
+                if (!existingSession) {
+                    throw new Error('Session not found');
+                }
+
+                if (existingSession.tutor.toString() !== tutorId.toString()) {
+                    throw new Error('Only the tutor can confirm this session');
+                }
+
+                if (existingSession.status !== SESSION_STATUS.PENDING) {
+                    throw new Error(`Session cannot be confirmed. Current status: ${existingSession.status}`);
+                }
+
+                // Check if session is locked by another process
+                if (existingSession.lockedUntil && existingSession.lockedUntil > new Date()) {
+                    throw new Error('Session is being processed by another request. Please try again.');
+                }
+
                 // Find and lock the session
                 const session = await Session.findOneAndUpdate(
                     {
                         _id: sessionId,
                         tutor: tutorId,
                         status: SESSION_STATUS.PENDING,
-                        lockedUntil: { $lt: new Date() }
+                        $or: [
+                            { lockedUntil: null },
+                            { lockedUntil: { $lt: new Date() } },
+                            { lockedUntil: { $exists: false } }
+                        ]
                     },
                     {
                         $set: { lockedUntil: new Date(Date.now() + 30000) } // 30 second lock
@@ -136,7 +162,7 @@ class SessionService {
                 );
 
                 if (!session) {
-                    throw new Error('Session not found, already processed, or you are not the tutor');
+                    throw new Error('Failed to acquire lock on session. Please try again.');
                 }
 
                 // Verify student still has enough credits

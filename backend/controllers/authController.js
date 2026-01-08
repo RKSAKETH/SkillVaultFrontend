@@ -34,7 +34,7 @@ const authController = {
 
             await user.save();
 
-            // Create initial credit transaction
+            // Create initial credit transaction (welcome bonus)
             await TransactionService.credit(
                 user._id,
                 INITIAL_CREDITS,
@@ -45,21 +45,24 @@ const authController = {
             // Generate token
             const token = user.generateAuthToken();
 
-            // Update last login
+            // Update last login and refresh user to get updated creditBalance
             user.lastLogin = new Date();
             await user.save();
+            
+            // Refresh user from database to get the updated creditBalance after the transaction
+            const updatedUser = await User.findById(user._id);
 
             res.status(201).json({
                 success: true,
                 data: {
                     user: {
-                        id: user._id,
-                        email: user.email,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        fullName: user.fullName,
-                        creditBalance: user.creditBalance,
-                        avatar: user.avatar
+                        id: updatedUser._id,
+                        email: updatedUser.email,
+                        firstName: updatedUser.firstName,
+                        lastName: updatedUser.lastName,
+                        fullName: updatedUser.fullName,
+                        creditBalance: updatedUser.creditBalance,
+                        avatar: updatedUser.avatar
                     },
                     token
                 }
