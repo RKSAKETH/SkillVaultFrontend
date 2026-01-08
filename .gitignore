@@ -13,3 +13,4 @@ backend/.env
 .env
 node_modules/
 venv/
+package-lock.json
