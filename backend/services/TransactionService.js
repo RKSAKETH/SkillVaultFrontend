@@ -48,7 +48,8 @@ class TransactionService {
             }
         }
 
-        // Helper to execute with or without transaction
+        // SECURITY: Transactions are REQUIRED for financial operations
+        // Do NOT retry without transactions as it causes race conditions and partial failures
         const executeOperation = async (operation) => {
             const mongoSession = await mongoose.startSession();
             try {
@@ -58,11 +59,11 @@ class TransactionService {
                 });
                 return result;
             } catch (error) {
-                // If the error is due to standalone instance (IllegalOperation), retry without transaction
+                // If the error is due to standalone instance (IllegalOperation), DO NOT RETRY
                 if (error.code === 20 || error.codeName === 'IllegalOperation' || error.message.includes('Transaction numbers are only allowed on a replica set')) {
-                    console.warn('MongoDB Transaction failed (likely standalone instance). Retrying without transaction...');
-                    // Retry correctly passing undefined as session
-                    return await operation(undefined);
+                    console.error('CRITICAL: MongoDB transactions are not supported. This application requires a MongoDB replica set for financial integrity.');
+                    console.error('Please configure MongoDB as a replica set or use MongoDB Atlas.');
+                    throw new Error('Database configuration error: MongoDB replica set required for credit transfers. Current instance does not support transactions.');
                 }
                 throw error;
             } finally {
@@ -127,9 +128,7 @@ class TransactionService {
             );
 
             if (toUpdateResult.modifiedCount === 0) {
-                // If we fail here in non-transaction mode, we have a partial failure (sender debited, receiver not credited)
-                // In a real production system without transactions, we would need a compensation action here.
-                // For this fallback, we throw, but the sender is already debited if session is null.
+                // This will trigger rollback since we're inside a transaction
                 throw new Error('Failed to update receiver balance - concurrent modification detected');
             }
 
@@ -203,7 +202,7 @@ class TransactionService {
             throw new Error('Invalid credit transaction type');
         }
 
-        // Helper to execute with or without transaction
+        // SECURITY: Transactions are REQUIRED for financial operations
         const executeOperation = async (operation) => {
             const mongoSession = await mongoose.startSession();
             try {
@@ -214,8 +213,9 @@ class TransactionService {
                 return result;
             } catch (error) {
                 if (error.code === 20 || error.codeName === 'IllegalOperation' || error.message.includes('Transaction numbers are only allowed on a replica set')) {
-                    console.warn('MongoDB Transaction failed (likely standalone instance). Retrying without transaction...');
-                    return await operation(undefined);
+                    console.error('CRITICAL: MongoDB transactions are not supported. This application requires a MongoDB replica set for financial integrity.');
+                    console.error('Please configure MongoDB as a replica set or use MongoDB Atlas.');
+                    throw new Error('Database configuration error: MongoDB replica set required for credit operations. Current instance does not support transactions.');
                 }
                 throw error;
             } finally {
