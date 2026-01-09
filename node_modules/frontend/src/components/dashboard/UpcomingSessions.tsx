@@ -44,10 +44,9 @@ export function UpcomingSessions({ sessions }: UpcomingSessionsProps) {
                     const isTutor = typeof session.student === 'object';
 
                     return (
-                        <Link
+                        <div
                             key={session._id}
-                            href={`/sessions/${session._id}`}
-                            className="block p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600/50 transition-all"
+                            className="block p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 transition-all"
                         >
                             <div className="flex items-start gap-3">
                                 {typeof otherUser === 'object' && (
@@ -89,7 +88,7 @@ export function UpcomingSessions({ sessions }: UpcomingSessionsProps) {
                                     <p className="text-xs text-gray-500">credits</p>
                                 </div>
                             </div>
-                        </Link>
+                        </div>
                     );
                 })}
             </div>

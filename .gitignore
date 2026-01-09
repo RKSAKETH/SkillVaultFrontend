@@ -1,24 +1,59 @@
-# frontend
+# Environment files (NEVER commit these!)
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.env
+!*.env.example
+
+# Frontend
 frontend/node_modules/
 frontend/.next/
+frontend/out/
 frontend/.env*
+!frontend/.env.example
 
-# package locks (to avoid platform-specific binaries)
+# Backend
+backend/node_modules/
+backend/.env
+backend/.env.local
+backend/.env.production
+!backend/.env.example
+backend/.env.example
+backend/.env.production.example
+
+# Node modules
+node_modules/
+
+# Package locks (to avoid platform-specific binaries)
 package-lock.json
 frontend/package-lock.json
 backend/package-lock.json
 
-# node modules
-node_modules/
-
-# backend
-backend/node_modules/
-backend/.env
-
-# OS / editor
+# OS / Editor
 .DS_Store
-.env
-node_modules/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python virtual environment
 venv/
-package-lock.json
-venv/
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.docker/
+
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep

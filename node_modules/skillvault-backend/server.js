@@ -23,24 +23,44 @@ connectDB();
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
-const allowedOrigins = process.env.NODE_ENV === 'production'
-    ? [
-        process.env.FRONTEND_URL,
-        'https://skill-vault-frontend-frontend-8yii.vercel.app',
-        // Allow Vercel preview deployments
-    ].filter(Boolean)
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+// CORS configuration - Environment-based, no hardcoded URLs
+const getAllowedOrigins = () => {
+    const origins = [];
+    
+    // Primary frontend URL (required)
+    if (process.env.FRONTEND_URL) {
+        origins.push(process.env.FRONTEND_URL);
+    }
+    
+    // Additional allowed origins (comma-separated)
+    if (process.env.ALLOWED_ORIGINS) {
+        const additionalOrigins = process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim());
+        origins.push(...additionalOrigins);
+    }
+    
+    // Development fallback
+    if (process.env.NODE_ENV === 'development' && origins.length === 0) {
+        origins.push('http://localhost:3000', 'http://127.0.0.1:3000');
+    }
+    
+    return origins;
+};
+
+const allowedOrigins = getAllowedOrigins();
+
+// Log allowed origins on startup
+console.log('📍 Allowed CORS origins:', allowedOrigins);
 
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, curl, etc)
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.some(allowed => origin === allowed || origin.endsWith('.vercel.app'))) {
+        // Check if origin is in allowed list
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            console.log('CORS blocked origin:', origin);
+            console.log('⚠️ CORS blocked origin:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -159,7 +179,18 @@ const server = http.createServer(app);
 // Initialize Socket.IO with CORS
 const io = new Server(server, {
     cors: {
-        origin: allowedOrigins,
+        origin: function (origin, callback) {
+            // Allow requests with no origin
+            if (!origin) return callback(null, true);
+            
+            // Check if origin is in allowed list
+            if (allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                console.log('⚠️ Socket.IO CORS blocked origin:', origin);
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         methods: ['GET', 'POST'],
         credentials: true
     },

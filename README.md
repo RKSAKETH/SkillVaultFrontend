@@ -24,11 +24,13 @@ SkillVault is a full-stack web application that enables users to teach and learn
   - [Installation](#installation)
   - [Environment Setup](#environment-setup)
   - [Running the Application](#running-the-application)
+- [Deployment](#-deployment)
 - [Project Structure](#-project-structure)
 - [API Documentation](#-api-documentation)
 - [Database Models](#-database-models)
 - [WebSocket Events](#-websocket-events)
 - [Key Features Explained](#-key-features-explained)
+- [Security](#-security)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -257,7 +259,33 @@ npm start
 
 ---
 
-## 📁 Project Structure
+## � Deployment
+
+For detailed deployment instructions including:
+- Environment configuration for different platforms (Vercel, Render, Railway, Heroku)
+- Docker deployment
+- CORS setup and security
+- Environment-specific configurations (dev/staging/production)
+- Troubleshooting common deployment issues
+
+**See the complete [DEPLOYMENT.md](DEPLOYMENT.md) guide.**
+
+### Quick Deployment Summary
+
+#### Backend (Render/Railway/Heroku)
+1. Set environment variables: `MONGODB_URI`, `JWT_SECRET`, `FRONTEND_URL`, `NODE_ENV=production`
+2. Deploy backend code
+3. Note your backend URL
+
+#### Frontend (Vercel/Netlify)
+1. Set environment variables: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL`
+2. Deploy frontend code
+3. Update backend `FRONTEND_URL` to match your frontend URL
+
+**⚠️ Security Note:** The application now uses strict CORS validation. Only domains explicitly listed in `FRONTEND_URL` and `ALLOWED_ORIGINS` environment variables will be allowed. No wildcard domain matching is supported for security reasons.
+
+---
+
 
 ```
 SkillVaultFrontend/
