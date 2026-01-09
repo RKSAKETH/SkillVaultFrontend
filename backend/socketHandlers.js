@@ -2,10 +2,74 @@ const jwt = require('jsonwebtoken');
 const videoRoomService = require('./services/VideoRoomService');
 
 /**
+ * Simple rate limiter for socket events to prevent DoS attacks
+ */
+class SocketRateLimiter {
+    constructor(maxEvents = 50, windowMs = 1000) {
+        this.maxEvents = maxEvents;
+        this.windowMs = windowMs;
+        this.events = new Map(); // socketId -> [timestamps]
+    }
+
+    isAllowed(socketId) {
+        const now = Date.now();
+        const userEvents = this.events.get(socketId) || [];
+        
+        // Remove old events outside the time window
+        const recentEvents = userEvents.filter(timestamp => now - timestamp < this.windowMs);
+        
+        if (recentEvents.length >= this.maxEvents) {
+            return false; // Rate limit exceeded
+        }
+        
+        recentEvents.push(now);
+        this.events.set(socketId, recentEvents);
+        return true;
+    }
+
+    cleanup(socketId) {
+        this.events.delete(socketId);
+    }
+}
+
+/**
+ * Input validation utilities
+ */
+const validation = {
+    isValidSDP(sdp) {
+        if (!sdp || typeof sdp !== 'string') return false;
+        if (sdp.length > 50000) return false; // Max 50KB
+        return sdp.includes('v=0') && sdp.includes('o='); // Basic SDP format
+    },
+    
+    isValidCandidate(candidate) {
+        if (!candidate || typeof candidate !== 'object') return false;
+        const json = JSON.stringify(candidate);
+        if (json.length > 5000) return false; // Max 5KB
+        return true;
+    },
+    
+    isValidMessage(message) {
+        if (!message || typeof message !== 'string') return false;
+        if (message.length > 5000) return false; // Max 5KB
+        return true;
+    },
+    
+    isValidSessionId(sessionId) {
+        if (!sessionId || typeof sessionId !== 'string') return false;
+        // MongoDB ObjectId format (24 hex chars) or UUID
+        return /^[a-f0-9]{24}$/i.test(sessionId) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId);
+    }
+};
+
+/**
  * Socket.IO handler for WebRTC signaling
  * Uses Perfect Negotiation pattern - broadcasts to room instead of targeted sends
  */
 function initializeSocketHandlers(io) {
+    // Create rate limiters for different event types
+    const signalingLimiter = new SocketRateLimiter(50, 1000); // 50 events per second for signaling
+    const messageLimiter = new SocketRateLimiter(10, 1000); // 10 messages per second for chat
     // Middleware for authentication
     io.use(async (socket, next) => {
         try {
@@ -35,8 +99,13 @@ function initializeSocketHandlers(io) {
             try {
                 const { sessionId } = data;
 
+                // Input validation
                 if (!sessionId) {
-                    return callback({ error: 'Session ID required' });
+                    return callback({ error: 'Session ID is required' });
+                }
+
+                if (!validation.isValidSessionId(sessionId)) {
+                    return callback({ error: 'Invalid session ID format' });
                 }
 
                 // Clean up previous room if exists
@@ -105,11 +174,23 @@ function initializeSocketHandlers(io) {
          * Using Perfect Negotiation - no targeted sends
          */
         socket.on('offer', (data) => {
+            // Rate limiting
+            if (!signalingLimiter.isAllowed(socket.id)) {
+                console.warn(`[Socket] Rate limit exceeded for offer from ${socket.id}`);
+                return;
+            }
+
             const { sdp } = data;
             const roomId = socket.roomId;
 
             if (!roomId) {
                 console.log(`[Socket] No roomId for offer from ${socket.id}`);
+                return;
+            }
+
+            // Input validation
+            if (!validation.isValidSDP(sdp)) {
+                console.warn(`[Socket] Invalid SDP in offer from ${socket.id}`);
                 return;
             }
 
@@ -127,11 +208,23 @@ function initializeSocketHandlers(io) {
          * WebRTC Signaling: Broadcast SDP answer to other peers in the room
          */
         socket.on('answer', (data) => {
+            // Rate limiting
+            if (!signalingLimiter.isAllowed(socket.id)) {
+                console.warn(`[Socket] Rate limit exceeded for answer from ${socket.id}`);
+                return;
+            }
+
             const { sdp } = data;
             const roomId = socket.roomId;
 
             if (!roomId) {
                 console.log(`[Socket] No roomId for answer from ${socket.id}`);
+                return;
+            }
+
+            // Input validation
+            if (!validation.isValidSDP(sdp)) {
+                console.warn(`[Socket] Invalid SDP in answer from ${socket.id}`);
                 return;
             }
 
@@ -149,10 +242,21 @@ function initializeSocketHandlers(io) {
          * WebRTC Signaling: Broadcast ICE candidates to other peers
          */
         socket.on('ice-candidate', (data) => {
+            // Rate limiting
+            if (!signalingLimiter.isAllowed(socket.id)) {
+                return; // Silently drop to avoid log spam
+            }
+
             const { candidate } = data;
             const roomId = socket.roomId;
 
             if (!roomId) {
+                return;
+            }
+
+            // Input validation
+            if (!validation.isValidCandidate(candidate)) {
+                console.warn(`[Socket] Invalid ICE candidate from ${socket.id}`);
                 return;
             }
 
@@ -186,15 +290,31 @@ function initializeSocketHandlers(io) {
          * Chat message within the call
          */
         socket.on('chat-message', (data) => {
+            // Rate limiting
+            if (!messageLimiter.isAllowed(socket.id)) {
+                console.warn(`[Socket] Rate limit exceeded for chat from ${socket.id}`);
+                socket.emit('error', { message: 'You are sending messages too quickly. Please slow down.' });
+                return;
+            }
+
             const roomId = socket.roomId;
 
-            if (roomId) {
-                socket.to(roomId).emit('chat-message', {
-                    senderId: socket.userId,
-                    message: data.message,
-                    timestamp: new Date().toISOString()
-                });
+            if (!roomId) {
+                return;
             }
+
+            // Input validation
+            if (!validation.isValidMessage(data.message)) {
+                console.warn(`[Socket] Invalid message from ${socket.id}`);
+                socket.emit('error', { message: 'Invalid message format or too large.' });
+                return;
+            }
+
+            socket.to(roomId).emit('chat-message', {
+                senderId: socket.userId,
+                message: data.message,
+                timestamp: new Date().toISOString()
+            });
         });
 
         /**
@@ -226,6 +346,10 @@ function initializeSocketHandlers(io) {
                 clearTimeout(socket.roomEndTimer);
                 socket.roomEndTimer = null;
             }
+
+            // Clean up rate limiters
+            signalingLimiter.cleanup(socket.id);
+            messageLimiter.cleanup(socket.id);
 
             const roomId = socket.roomId;
 
