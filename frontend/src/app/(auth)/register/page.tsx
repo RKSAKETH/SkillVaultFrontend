@@ -60,7 +60,16 @@ export default function RegisterPage() {
             });
             router.push('/dashboard');
         } catch (err: any) {
-            setError(err.message || 'Failed to create account');
+            console.error('Registration error:', err);
+            
+            // Better error messages for network issues
+            if (err.message.includes('fetch') || err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
+                setError('Unable to connect to server. Please ensure the backend is running at http://localhost:5000');
+            } else if (err.message.includes('email')) {
+                setError('Email already exists or is invalid');
+            } else {
+                setError(err.message || 'Failed to create account. Please try again.');
+            }
         } finally {
             setIsLoading(false);
         }

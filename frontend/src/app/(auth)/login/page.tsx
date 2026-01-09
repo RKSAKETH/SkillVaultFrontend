@@ -32,7 +32,16 @@ export default function LoginPage() {
             await login(email, password);
             router.push('/dashboard');
         } catch (err: any) {
-            setError(err.message || 'Failed to login');
+            console.error('Login error:', err);
+            
+            // Better error messages for network issues
+            if (err.message.includes('fetch') || err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
+                setError('Unable to connect to server. Please ensure the backend is running at http://localhost:5000');
+            } else if (err.message.includes('Invalid credentials')) {
+                setError('Invalid email or password');
+            } else {
+                setError(err.message || 'Failed to login. Please try again.');
+            }
         } finally {
             setIsLoading(false);
         }
