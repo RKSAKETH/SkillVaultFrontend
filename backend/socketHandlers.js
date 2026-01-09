@@ -39,6 +39,26 @@ function initializeSocketHandlers(io) {
                     return callback({ error: 'Session ID required' });
                 }
 
+                // Clean up previous room if exists
+                if (socket.roomId) {
+                    // Clear old timer
+                    if (socket.roomEndTimer) {
+                        clearTimeout(socket.roomEndTimer);
+                        socket.roomEndTimer = null;
+                    }
+                    
+                    // Leave old room
+                    socket.leave(socket.roomId);
+                    
+                    // Notify old room participants
+                    socket.to(socket.roomId).emit('user-left', {
+                        userId: socket.userId,
+                        socketId: socket.id
+                    });
+                    
+                    console.log(`[Socket] User ${socket.userId} left previous room ${socket.roomId}`);
+                }
+
                 const result = await videoRoomService.joinRoom(
                     sessionId,
                     socket.userId,
@@ -53,7 +73,7 @@ function initializeSocketHandlers(io) {
 
                 // Notify other participants
                 socket.to(result.roomId).emit('user-joined', {
-                    odId: socket.userId,
+                    userId: socket.userId,
                     role: result.role,
                     socketId: socket.id
                 });
@@ -64,6 +84,7 @@ function initializeSocketHandlers(io) {
                         io.to(result.roomId).emit('session-ended', {
                             reason: 'Session time completed'
                         });
+                        socket.roomEndTimer = null;
                     }, result.remainingTime);
                 }
 
@@ -203,19 +224,25 @@ function initializeSocketHandlers(io) {
             // Clear any timers
             if (socket.roomEndTimer) {
                 clearTimeout(socket.roomEndTimer);
+                socket.roomEndTimer = null;
             }
 
             const roomId = socket.roomId;
 
-            // Leave the room
-            const result = await videoRoomService.leaveRoom(socket.id);
+            if (roomId) {
+                // Leave the room
+                const result = await videoRoomService.leaveRoom(socket.id);
 
-            if (result && roomId) {
-                // Notify other participants
-                socket.to(roomId).emit('user-left', {
-                    odId: result.odId,
-                    socketId: socket.id
-                });
+                if (result) {
+                    // Notify other participants in the correct room
+                    socket.to(roomId).emit('user-left', {
+                        userId: result.userId,
+                        socketId: socket.id
+                    });
+                }
+                
+                // Clean up socket state
+                socket.roomId = null;
             }
         });
 
@@ -226,20 +253,25 @@ function initializeSocketHandlers(io) {
             // Clear any timers
             if (socket.roomEndTimer) {
                 clearTimeout(socket.roomEndTimer);
+                socket.roomEndTimer = null;
             }
 
             const roomId = socket.roomId;
-            const result = await videoRoomService.leaveRoom(socket.id);
+            
+            if (roomId) {
+                const result = await videoRoomService.leaveRoom(socket.id);
 
-            if (result && roomId) {
-                socket.leave(roomId);
-                socket.to(roomId).emit('user-left', {
-                    odId: result.odId,
-                    socketId: socket.id
-                });
+                if (result) {
+                    socket.leave(roomId);
+                    socket.to(roomId).emit('user-left', {
+                        userId: result.userId,
+                        socketId: socket.id
+                    });
+                }
+
+                socket.roomId = null;
             }
-
-            socket.roomId = null;
+            
             if (callback) callback({ success: true });
         });
     });
