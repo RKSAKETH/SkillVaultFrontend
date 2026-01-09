@@ -19,8 +19,8 @@ const auth = async (req, res, next) => {
 
         const token = authHeader.split(' ')[1];
 
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // Verify token with explicit algorithm to prevent algorithm confusion attacks
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
         // Get user from database
         const user = await User.findById(decoded.id).select('-password');
@@ -78,7 +78,7 @@ const optionalAuth = async (req, res, next) => {
         }
 
         const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
         const user = await User.findById(decoded.id).select('-password');
 
         if (user && user.isActive) {
